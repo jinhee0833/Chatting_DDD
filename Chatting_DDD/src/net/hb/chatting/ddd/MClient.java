@@ -1,6 +1,7 @@
 package net.hb.chatting.ddd;
 
 import java.awt.BorderLayout;
+import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FileDialog;
@@ -41,19 +42,22 @@ import javax.swing.JTextField;
 
 public class MClient extends JFrame implements ActionListener, Runnable {
 	JPanel jp3 = new JPanel();
-	JPanel jp4 = new JPanel(new BorderLayout());
-	JPanel jp6 = new JPanel();
+	BorderLayout border = new BorderLayout();
+	JPanel jp4 = new JPanel(border);
+	JPanel jp6 = new JPanel(new BorderLayout());
 	JPanel jp9 = new JPanel();
 	JPanel jp10 = new JPanel(new BorderLayout());
 	JPanel jp11 = new JPanel();
+	JPanel jp12 = new JPanel();
 	JTextField tf_name = new JTextField(10);
 	JTextField tf_msg = new JTextField(30);
 	Vector<JTextArea> v = new Vector<JTextArea>();
 	JFrame jf = new JFrame("Messenger");
 	JTabbedPane jtp = new JTabbedPane();
 	TextArea ta_out = new TextArea(25, 1);
-	JButton jb_cl = new JButton(new ImageIcon("C:/Mtest/my3/Chatting_BBB/file.gif"));
-	JButton jb_send = new JButton(new ImageIcon("C:/Mtest/my3/Chatting_BBB/send.gif"));
+	JButton jb_cl = new JButton(new ImageIcon("C:/Mtest/my3/Chatting_DDD/file.gif"));
+	JButton jb_send = new JButton(new ImageIcon("C:/Mtest/my3/Chatting_DDD/send.gif"));
+	JButton jb_join = new JButton("Join");
 	List list = new List(23);
 	Map<String, Boolean> NameList = new HashMap<String, Boolean>();
 	Boolean isCreatedTab = false;
@@ -68,6 +72,7 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 	OutputStream out;
 	BufferedReader in;
 	Socket soc;
+	
 
 	public MClient() {
 		initializeWindow();
@@ -80,20 +85,23 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 		v.get(0).setBackground(new Color(178, 204, 255));
 
 		jtp.setPreferredSize(new Dimension(100, 425));
-		jp4.add("North", jtp);
+		
+		jp12.add(tf_name);
+		jp12.add(jb_join);
 		jp3.add(jb_cl); // 지우개
 		jp3.add(tf_msg);
 		jp3.add(jb_send); // 보내기
-		jp4.add("South", jp3);
-
-		for (int i = 1; i < 25; i++) {
-			list.add("Friend" + i);
-		}
-
-		jp6.add(list);
+		
+		jp4.add("Center", jtp);
+		border.setHgap(15);
+		jp4.add("West",list);
+		
+		jp6.add("East", jp3);	
+		jp6.add("West",jp12);
+		
 		jf.setJMenuBar(mb);
-		jf.getContentPane().add("West", jp6);
-		jf.getContentPane().add("East", jp4);
+		jf.getContentPane().add("South", jp6);
+		jf.getContentPane().add("North", jp4);
 		jf.setSize(700, 640);
 		jf.setResizable(false);
 		mb.add(mfile);
@@ -341,7 +349,7 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 		ta_out.setEnabled(true);
 		tf_msg.setEnabled(true);
 		try {
-			soc = new Socket("203.236.209.122", 5555); // 소켓지정
+			soc = new Socket("203.236.209.120", 5555); // 소켓지정
 			in = new BufferedReader(new InputStreamReader(soc.getInputStream())); 																																																																							
 			out = soc.getOutputStream(); // 서버로 보냄
 			out.write((tf_name.getText() + "\n").getBytes()); // 접속자 대화명을 바이트로해서 서버에 보냄																							
