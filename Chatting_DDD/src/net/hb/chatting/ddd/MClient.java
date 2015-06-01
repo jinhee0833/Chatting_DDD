@@ -73,7 +73,6 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 	BufferedReader in;
 	Socket soc;
 	
-
 	public MClient() {
 		initializeWindow();
 		layoutCom();
@@ -83,7 +82,6 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 		v.add(new JTextArea());
 		this.jtp.addTab("All", jp11.add((JTextArea) v.get(0)));
 		v.get(0).setBackground(new Color(178, 204, 255));
-
 		jtp.setPreferredSize(new Dimension(100, 425));
 		
 		jp12.add(tf_name);
@@ -94,8 +92,7 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 		
 		jp4.add("Center", jtp);
 		border.setHgap(15);
-		jp4.add("West",list);
-		
+		jp4.add("West",list);	
 		jp6.add("East", jp3);	
 		jp6.add("West",jp12);
 		
@@ -109,6 +106,8 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 		mfile.add(msave);
 		mfile.addSeparator();
 		mfile.add(mexit);
+		for(int i=0;i<20;i++)
+			list.add("");
 		list.setBackground(new Color(255, 167, 167));
 		jf.pack();
 		jf.setLocationRelativeTo(null);
@@ -117,9 +116,7 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 	}// layout end
 
 	public void initializeWindow() {
-		for (int i = 0; i < 25; i++) { // initialize map
-			NameList.put("Friend" + i, this.isCreatedTab);
-		}
+		
 		jf.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				exit();
@@ -127,9 +124,12 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 		});
 
 		MouseListener mouseListener = new MouseAdapter() {
+			
 			public void mouseClicked(MouseEvent ae) {
 				String nick = list.getSelectedItem().toString();
+				
 				if (ae.getClickCount() == 2) {
+			
 					if (!(NameList.get(nick))) { // New Create						
 						v.add(new JTextArea());
 						jtp.addTab(nick, new JPanel().add(v.get(num)));
@@ -140,8 +140,13 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 						jtp.setSelectedIndex(jtp.indexOfTab(nick));
 					} else if (nick.equals(jtp.getTitleAt(jtp.indexOfTab(nick)))) {
 						jtp.setSelectedIndex(jtp.indexOfTab(nick));
-					}
+					}			
 				}
+				if(ae.getButton() == 3) {				
+					int i = jtp.getSelectedIndex();
+					if(i>0)
+						jtp.remove(i);					
+				}		
 			}
 		};
 
@@ -165,6 +170,8 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 		ta_out.setForeground(Color.white);
 		jb_cl.addActionListener(this);
 		list.addMouseListener(mouseListener);
+		jb_join.addActionListener(this);
+		jtp.addMouseListener(mouseListener);
 	}// end
 
 	public void exit() {
@@ -256,9 +263,11 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 					return;
 				if (msg.charAt(0) == '/') {
 					if (msg.charAt(1) == 'c') { 
-						list.replaceItem(msg.substring(2), count); 																																															
+						list.replaceItem(msg.substring(2), count); 
+						NameList.put(msg.substring(2), isCreatedTab);
 						count++;
-						ta_out.append("****" + msg.substring(2) + "님이 입장하셨습니다****\r\n");																																																																																																								
+						int i = jtp.getSelectedIndex();
+						v.get(i).append("****" + msg.substring(2) + "님이 입장하셨습니다****\r\n");																																																																																																								
 						tf_name.setEnabled(false); // 대화명 label 비활성
 					}
 					else if (msg.charAt(1) == 'q') { // 나가기버튼 누르거나 /q를 입력하면 서버에 q가 입력이 돼.													
@@ -318,10 +327,13 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 		} else if (e.getSource() == jb_send || e.getSource() == tf_msg) {
 			sendProcess();
 		}
-		else if (e.getSource() == tf_name) { connect(); }	
+		else if (e.getSource() == tf_name||e.getSource()==jb_join) { 
+			System.out.println("action");
+			connect(); }	
 		else if (e.getSource() == jb_cl) {
 			ta_out.setText("");
 		}
+		
 	}// actionPerformed end
 	
 	public void sendProcess() {
@@ -346,15 +358,17 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 	}// end
 
 	public void connect() { // 대화명을 서버로 보내서 접속자에 등록.
+		System.out.println("connect");
 		ta_out.setEnabled(true);
 		tf_msg.setEnabled(true);
 		try {
-			soc = new Socket("203.236.209.120", 5555); // 소켓지정
+			soc = new Socket("203.236.209.120", 8888); // 소켓지정
 			in = new BufferedReader(new InputStreamReader(soc.getInputStream())); 																																																																							
 			out = soc.getOutputStream(); // 서버로 보냄
 			out.write((tf_name.getText() + "\n").getBytes()); // 접속자 대화명을 바이트로해서 서버에 보냄																							
 			System.out.println("서버로 보냄 >> " + tf_name.getText());
 			tf_name.setEnabled(false);
+			jb_join.setEnabled(false);
 			new Thread(this).start(); // 다른 클라이언트들의 메시지를 서버로부터 가져옴
 			tf_msg.requestFocus();
 		} catch (Exception e) {
@@ -363,6 +377,7 @@ public class MClient extends JFrame implements ActionListener, Runnable {
 	}// end
 	
 	public static void main(String[] args) {
+		System.out.println("main 시작");
 		MClient mc = new MClient();
 		Thread tr = new Thread(mc);
 	}// main end
